@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: product-postgres
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: product
+      POSTGRES_PASSWORD: product
+    command:
+      - postgres
+      - -c
+      - shared_buffers=16MB
+      - -c
+      - max_connections=20
+      - -c
+      - work_mem=1MB
+    mem_limit: 256m
+    ports:
+      - "5432:5432"
+    volumes:
+      - product-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U product -d products"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  product-postgres-data:

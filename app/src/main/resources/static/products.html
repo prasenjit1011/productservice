@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Products · Nutrisoft</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>Products</h1>
+      <p>Add catalog items and keep price and stock up to date.</p>
+    </section>
+
+    <section class="layout split">
+      <form id="product-form" class="panel form-grid">
+        <h2 class="section-title">Product form</h2>
+        <input type="hidden" id="product-id">
+
+        <label>
+          Name
+          <input id="name" name="name" maxlength="120" required>
+        </label>
+
+        <label>
+          Description
+          <textarea id="description" name="description" maxlength="500"></textarea>
+        </label>
+
+        <label>
+          Price
+          <input id="price" name="price" type="number" min="0.01" step="0.01" required>
+        </label>
+
+        <label>
+          Stock
+          <input id="stock" name="stock" type="number" min="0" step="1" required>
+        </label>
+
+        <div class="form-actions">
+          <button type="submit">Save product</button>
+          <button type="button" class="secondary" id="reset-form">Clear</button>
+        </div>
+        <p id="form-status" class="status" aria-live="polite"></p>
+      </form>
+
+      <div class="panel">
+        <h2 class="section-title">Product list</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="product-rows">
+              <tr>
+                <td colspan="4" class="empty">Loading products…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="list-status" class="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Nutrisoft demo UI</footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/products.js"></script>
+</body>
+</html>

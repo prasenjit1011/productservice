@@ -1,0 +1,100 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: app/pom.xml
+
+      - name: Package
+        working-directory: app
+        run: mvn -B package
+
+      - name: Image name
+        id: image
+        run: |
+          owner=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "name=ghcr.io/${owner}/product-service" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push image
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}
+        run: |
+          docker build -t "${IMAGE}:${{ github.sha }}" -t "${IMAGE}:latest" ./app
+          docker push "${IMAGE}:${{ github.sha }}"
+          docker push "${IMAGE}:latest"
+
+      - name: Install kubectl
+        run: |
+          version=$(curl -fsSL https://dl.k8s.io/release/stable.txt)
+          curl -fsSL "https://dl.k8s.io/release/${version}/bin/linux/amd64/kubectl" -o kubectl
+          sudo install -m 0755 kubectl /usr/local/bin/kubectl
+
+      - name: Configure cluster access
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          if [ -z "$KUBE_CONFIG" ]; then
+            echo "Add repository secret KUBE_CONFIG with the target cluster kubeconfig."
+            exit 1
+          fi
+          mkdir -p "$HOME/.kube"
+          printf '%s\n' "$KUBE_CONFIG" > "$HOME/.kube/config"
+          chmod 600 "$HOME/.kube/config"
+
+      - name: Deploy to Kubernetes
+        env:
+          IMAGE: ${{ steps.image.outputs.name }}:${{ github.sha }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          work=$(mktemp -d)
+          manifest="$work/product-demo.yaml"
+          cp k8s/product-demo.yaml "$manifest"
+          sed -i "s|image: product-service:1.0.0|image: ${IMAGE}|" "$manifest"
+          if [ -n "$GHCR_TOKEN" ]; then
+            kubectl create namespace product-demo --dry-run=client -o yaml | kubectl apply -f -
+            kubectl -n product-demo create secret docker-registry ghcr-pull \
+              --docker-server=ghcr.io \
+              --docker-username="${GHCR_USERNAME}" \
+              --docker-password="${GHCR_TOKEN}" \
+              --dry-run=client -o yaml | kubectl apply -f -
+            python3 - "$manifest" <<'PY'
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+text = path.read_text()
+needle = "      initContainers:\n"
+insert = "      imagePullSecrets:\n        - name: ghcr-pull\n      initContainers:\n"
+if needle not in text:
+    raise SystemExit("initContainers block not found")
+path.write_text(text.replace(needle, insert, 1))
+PY
+          fi
+          kubectl apply -f "$manifest"
+          kubectl -n product-demo rollout status deployment/postgres --timeout=180s
+          kubectl -n product-demo rollout status deployment/product-service --timeout=300s

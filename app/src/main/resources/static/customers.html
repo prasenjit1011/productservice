@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customers · Nutrisoft</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>Customers</h1>
+      <p>Store customer contact details and edit them when needed.</p>
+    </section>
+
+    <section class="layout split">
+      <form id="customer-form" class="panel form-grid">
+        <h2 class="section-title">Customer form</h2>
+        <input type="hidden" id="customer-id">
+
+        <label>
+          Name
+          <input id="name" name="name" maxlength="120" required>
+        </label>
+
+        <label>
+          Email
+          <input id="email" name="email" type="email" maxlength="180" required>
+        </label>
+
+        <label>
+          Phone
+          <input id="phone" name="phone" maxlength="30">
+        </label>
+
+        <div class="form-actions">
+          <button type="submit">Save customer</button>
+          <button type="button" class="secondary" id="reset-form">Clear</button>
+        </div>
+        <p id="form-status" class="status" aria-live="polite"></p>
+      </form>
+
+      <div class="panel">
+        <h2 class="section-title">Customer list</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="customer-rows">
+              <tr>
+                <td colspan="4" class="empty">Loading customers…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="list-status" class="status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Nutrisoft demo UI</footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/customers.js"></script>
+</body>
+</html>
