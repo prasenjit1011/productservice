@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Purchases · Nutrisoft</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>Purchases</h1>
+      <p>One customer can buy only one product within 45 minutes.</p>
+    </section>
+
+    <section class="content-grid">
+      <form id="purchase-form" class="panel form-grid">
+        <h2 class="section-title">Buy product</h2>
+        <label>
+          Customer
+          <select id="customer-id" required></select>
+        </label>
+        <label>
+          Product
+          <select id="product-id" required></select>
+        </label>
+        <div class="form-actions">
+          <button type="submit">Buy</button>
+        </div>
+        <p id="form-status" class="status" aria-live="polite"></p>
+      </form>
+
+      <div class="panel">
+        <h2 class="section-title">Purchase history</h2>
+        <p id="list-status" class="status" aria-live="polite"></p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody id="purchase-rows">
+              <tr>
+                <td colspan="3" class="empty">Loading purchases…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">Nutrisoft demo UI</footer>
+  <script src="/js/common.js"></script>
+  <script src="/js/purchases.js"></script>
+</body>
+</html>

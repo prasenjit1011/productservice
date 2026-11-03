@@ -2,6 +2,8 @@ package com.nutrisoft.exception;
 
 import com.nutrisoft.customer.exception.CustomerNotFoundException;
 import com.nutrisoft.product.exception.ProductNotFoundException;
+import com.nutrisoft.purchase.exception.InsufficientStockException;
+import com.nutrisoft.purchase.exception.PurchaseLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -17,6 +19,11 @@ public class ApiExceptionHandler {
     @ExceptionHandler({ProductNotFoundException.class, CustomerNotFoundException.class})
     public ResponseEntity<Map<String, String>> notFound(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler({PurchaseLimitExceededException.class, InsufficientStockException.class})
+    public ResponseEntity<Map<String, String>> conflict(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

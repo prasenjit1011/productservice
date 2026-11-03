@@ -11,6 +11,7 @@ function injectHeader(activePage) {
         <a href="/" data-page="home">Home</a>
         <a href="/products.html" data-page="products">Products</a>
         <a href="/customers.html" data-page="customers">Customers</a>
+        <a href="/purchases.html" data-page="purchases">Purchases</a>
       </nav>
     </div>
   `;

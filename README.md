@@ -11,9 +11,11 @@ A small Product and Customer API built with Spring Boot and Hibernate, backed by
 | Kubernetes YAML | `k8s/product-demo.yaml` |
 | Terraform (Kubernetes provider) | `terraform/` |
 
-Hibernate creates and updates the `products` and `customers` tables (`spring.jpa.hibernate.ddl-auto=update`).
+Hibernate creates and updates the `products`, `customers`, and `purchases` tables (`spring.jpa.hibernate.ddl-auto=update`).
 
-Product code lives in `com.nutrisoft.product`. Customer code lives in `com.nutrisoft.customer`.
+Product code lives in `com.nutrisoft.product`. Customer code lives in `com.nutrisoft.customer`. Purchase code lives in `com.nutrisoft.purchase`.
+
+Rule: a customer can buy only **1 product within 45 minutes**. A second buy inside that window returns HTTP 409.
 
 ## API
 
@@ -29,6 +31,8 @@ Product code lives in `com.nutrisoft.product`. Customer code lives in `com.nutri
 | `POST` | `/api/customers` | `{ "name", "email", "phone" }` |
 | `PUT` | `/api/customers/{id}` | same as create |
 | `DELETE` | `/api/customers/{id}` | |
+| `GET` | `/api/purchases` | |
+| `POST` | `/api/purchases` | `{ "customerId", "productId" }` |
 
 ```json
 {
@@ -49,7 +53,7 @@ cd app
 mvn spring-boot:run
 ```
 
-UI: `http://localhost:8080/` · Products: `/products.html` · Customers: `/customers.html`
+UI: `http://localhost:8080/` · Products: `/products.html` · Customers: `/customers.html` · Purchases: `/purchases.html`
 
 API: `http://localhost:8080/api/products`
 
@@ -60,7 +64,9 @@ curl -X POST http://localhost:8080/api/products -H "Content-Type: application/js
 curl http://localhost:8080/api/products
 curl -X POST http://localhost:8080/api/customers -H "Content-Type: application/json" -d "{\"name\":\"Ada Lovelace\",\"email\":\"ada@example.com\",\"phone\":\"555-0100\"}"
 curl http://localhost:8080/api/customers
+curl -X POST http://localhost:8080/api/purchases -H "Content-Type: application/json" -d "{\"customerId\":1,\"productId\":1}"
 ```
+
 
 ## Run on Kubernetes
 
@@ -116,3 +122,18 @@ Add these repository secrets before the first deploy:
 GitHub Packages creates the container as private. Make the `product-service` package public, or set the two `GHCR_*` secrets so the cluster can pull the image.
 
 This workflow applies `k8s/product-demo.yaml`. Leave Terraform unused for the `product-demo` namespace.
+
+After a successful deploy, the workflow waits **20 minutes**, then deletes the entire `product-demo` namespace (pods, services, PVC, secrets, everything).
+
+From **Actions → Deploy → Run workflow** you can choose:
+
+| Action | What it does |
+| --- | --- |
+| `deploy` | Build, push, apply, wait 20 minutes, then delete the namespace |
+| `destroy` | Delete the `product-demo` namespace immediately |
+
+Manual teardown without waiting:
+
+```powershell
+kubectl delete namespace product-demo
+```
